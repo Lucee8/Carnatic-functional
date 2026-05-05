@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SpiceBox Cloud Kitchen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+/* ===== RESET ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--fg);transition:background .3s,color .3s;min-height:100vh}
+img{display:block;max-width:100%}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;font-family:inherit;border:none;background:none}
+input,select,textarea{font-family:inherit}
+
+/* ===== CSS VARIABLES ===== */
+:root{
+  --primary:#FF6B35;--primary-dark:#e85a26;--primary-light:rgba(255,107,53,.12);
+  --bg:#faf8f6;--bg2:#ffffff;--bg3:#f3f0ed;
+  --fg:#1a1208;--fg2:#4a3f35;--muted:#8a7a6e;
+  --border:#e8e0d8;--shadow:0 2px 12px rgba(0,0,0,.08);--shadow-lg:0 8px 32px rgba(0,0,0,.12);
+  --radius:14px;--radius-sm:8px;--radius-lg:20px;--t:.2s ease
+}
+.dark{
+  --bg:#130f0a;--bg2:#1e1710;--bg3:#261e15;
+  --fg:#f5ede5;--fg2:#c8b5a5;--muted:#9a8a7a;
+  --border:#352a20;--shadow:0 2px 12px rgba(0,0,0,.4);--shadow-lg:0 8px 32px rgba(0,0,0,.5)
+}
+
+/* ===== UTILS ===== */
+.container{max-width:1200px;margin:0 auto;padding:0 20px}
+.hidden{display:none!important}
+.text-primary{color:var(--primary)}
+.text-muted{color:var(--muted)}
+.fw-bold{font-weight:700}
+.fw-black{font-weight:900}
+.sm{font-size:.85rem}
+.mt-2{margin-top:12px}
+.mt-4{margin-top:24px}
+.mb-2{margin-bottom:12px}
+.flex{display:flex}
+.flex-center{display:flex;align-items:center;justify-content:center}
+.gap-2{gap:10px}
+
+/* ===== BUTTONS ===== */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:var(--radius-sm);font-size:.9rem;font-weight:600;transition:var(--t);cursor:pointer;border:none}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-outline{background:transparent;border:2px solid var(--border);color:var(--fg)}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+.btn-ghost{background:transparent;color:var(--fg2)}
+.btn-ghost:hover{background:var(--bg3);color:var(--fg)}
+.btn-sm{padding:6px 14px;font-size:.8rem}
+.btn-block{width:100%}
+.btn-icon{width:38px;height:38px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:1.1rem;background:var(--bg3);color:var(--fg);transition:var(--t);border:1px solid var(--border)}
+.btn-icon:hover{background:var(--primary-light);color:var(--primary)}
+
+/* ===== NAVBAR ===== */
+.navbar{position:sticky;top:0;z-index:100;background:var(--bg2);border-bottom:1px solid var(--border);box-shadow:0 1px 8px rgba(0,0,0,.06)}
+.navbar-inner{display:flex;align-items:center;justify-content:space-between;height:64px;gap:16px}
+.logo{display:flex;align-items:center;gap:8px;font-weight:900;font-size:1.3rem;color:var(--fg);cursor:pointer}
+.logo-icon{width:36px;height:36px;border-radius:10px;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1rem}
+.nav-links{display:flex;align-items:center;gap:4px}
+.nav-link{padding:8px 16px;border-radius:var(--radius-sm);font-size:.9rem;font-weight:500;color:var(--muted);transition:var(--t);cursor:pointer}
+.nav-link:hover,.nav-link.active{background:var(--primary-light);color:var(--primary);font-weight:600}
+.nav-actions{display:flex;align-items:center;gap:8px}
+.cart-btn{position:relative}
+.cart-badge{position:absolute;top:-6px;right:-6px;width:20px;height:20px;background:var(--primary);color:#fff;border-radius:50%;font-size:.7rem;font-weight:800;display:flex;align-items:center;justify-content:center}
+.hamburger{display:none}
+.mobile-nav{border-top:1px solid var(--border);display:flex;flex-direction:column;padding:8px 20px 12px}
+.mobile-nav-link{padding:12px 16px;border-radius:var(--radius-sm);font-weight:500;color:var(--fg2);font-size:.95rem;transition:var(--t);cursor:pointer}
+.mobile-nav-link:hover{background:var(--primary-light);color:var(--primary)}
+
+/* ===== CART DRAWER ===== */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:200}
+.cart-drawer{position:fixed;top:0;right:-420px;width:420px;max-width:100vw;height:100vh;background:var(--bg2);z-index:201;display:flex;flex-direction:column;transition:right .35s cubic-bezier(.4,0,.2,1);box-shadow:var(--shadow-lg)}
+.cart-drawer.open{right:0}
+.cart-header{display:flex;align-items:center;justify-content:space-between;padding:20px;border-bottom:1px solid var(--border)}
+.cart-title{display:flex;align-items:center;gap:8px}
+.cart-title h2{font-size:1.1rem;font-weight:700}
+.cart-count{background:var(--primary);color:#fff;font-size:.75rem;font-weight:800;padding:2px 8px;border-radius:20px}
+.cart-items{flex:1;overflow-y:auto;padding:16px}
+.cart-empty{text-align:center;padding:48px 20px}
+.empty-icon{font-size:3rem;margin-bottom:16px}
+.cart-item{display:flex;gap:12px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px}
+.cart-item img{width:64px;height:64px;border-radius:10px;object-fit:cover;flex-shrink:0}
+.cart-item-info{flex:1;min-width:0}
+.cart-item-name{font-weight:600;font-size:.9rem}
+.cart-item-meta{font-size:.75rem;color:var(--muted);margin-top:2px}
+.cart-item-price{color:var(--primary);font-weight:700;font-size:.9rem;margin-top:4px}
+.qty-controls{display:flex;align-items:center;gap:8px;margin-top:8px}
+.qty-btn{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--bg2);font-size:1rem;font-weight:700;color:var(--fg);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:var(--t)}
+.qty-btn.plus{border-color:var(--primary);color:var(--primary)}
+.qty-btn:hover{background:var(--primary-light)}
+.qty-num{font-weight:700;width:20px;text-align:center}
+.cart-item-del{color:var(--muted);font-size:1rem;padding:4px;align-self:flex-start;cursor:pointer}
+.cart-item-del:hover{color:#e74c3c}
+.cart-footer{padding:16px 20px;border-top:1px solid var(--border)}
+.price-row{display:flex;justify-content:space-between;font-size:.9rem;margin-bottom:8px}
+.price-row.total{font-size:1rem;font-weight:800;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+
+/* ===== MODAL ===== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:300;display:flex;align-items:flex-end;justify-content:center}
+@media(min-width:600px){.modal-overlay{align-items:center}}
+.modal{background:var(--bg2);border-radius:var(--radius-lg) var(--radius-lg) 0 0;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;padding:28px;position:relative;animation:slideUp .3s ease}
+@media(min-width:600px){.modal{border-radius:var(--radius-lg)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+.modal-close{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;color:var(--fg2);border:none}
+
+/* ===== TOAST ===== */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--fg);color:var(--bg2);padding:12px 24px;border-radius:50px;font-size:.9rem;font-weight:600;z-index:400;box-shadow:var(--shadow-lg)}
+
+/* ===== HERO ===== */
+.hero{background:linear-gradient(135deg,#FF6B35 0%,#e85a26 50%,#c0392b 100%);color:#fff;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1600&auto=format&fit=crop') center/cover no-repeat;opacity:.18}
+.hero-inner{position:relative;max-width:1200px;margin:0 auto;padding:80px 20px;display:flex;align-items:center;gap:40px;flex-wrap:wrap}
+.hero-text{flex:1;min-width:280px}
+.hero-badge{display:inline-block;background:rgba(255,255,255,.2);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.3);padding:5px 14px;border-radius:20px;font-size:.82rem;font-weight:600;margin-bottom:20px}
+.hero h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:900;line-height:1.15;margin-bottom:16px}
+.hero-yellow{color:#fde68a}
+.hero-sub{font-size:1.05rem;opacity:.88;margin-bottom:28px;max-width:480px;line-height:1.6}
+.hero-btns{display:flex;gap:14px;flex-wrap:wrap}
+.hero-btn-primary{display:inline-flex;align-items:center;gap:8px;background:#fff;color:var(--primary);padding:14px 28px;border-radius:var(--radius);font-weight:800;font-size:.95rem;transition:var(--t);box-shadow:0 4px 16px rgba(0,0,0,.15);cursor:pointer}
+.hero-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.hero-btn-secondary{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.18);color:#fff;padding:14px 28px;border-radius:var(--radius);font-weight:600;font-size:.95rem;border:1.5px solid rgba(255,255,255,.35);transition:var(--t);cursor:pointer}
+.hero-btn-secondary:hover{background:rgba(255,255,255,.28)}
+.hero-img-wrap{flex:1;min-width:240px;display:flex;justify-content:center}
+.hero-img{width:300px;height:300px;border-radius:50%;object-fit:cover;border:4px solid rgba(255,255,255,.3);box-shadow:0 20px 60px rgba(0,0,0,.2)}
+
+/* ===== FEATURES ===== */
+.features-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:20px 0}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.feature-card{display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.feature-icon{width:44px;height:44px;border-radius:12px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.feature-title{font-weight:700;font-size:.9rem}
+.feature-sub{font-size:.78rem;color:var(--muted)}
+
+/* ===== BANNER ===== */
+.banner-section{padding:32px 0}
+.banner-wrap{border-radius:var(--radius-lg);overflow:hidden;position:relative;height:180px}
+.banner-slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;padding:32px 40px;opacity:0;transition:opacity .5s ease;border-radius:var(--radius-lg)}
+.banner-slide.active{opacity:1}
+.banner-slide-1{background:linear-gradient(135deg,#FF6B35,#e85a26)}
+.banner-slide-2{background:linear-gradient(135deg,#f59e0b,#d97706)}
+.banner-slide-3{background:linear-gradient(135deg,#e84393,#be185d)}
+.banner-text{color:#fff}
+.banner-title{font-size:2.2rem;font-weight:900}
+.banner-sub{font-size:1rem;opacity:.9}
+.banner-code{display:inline-block;background:rgba(255,255,255,.2);padding:5px 14px;border-radius:8px;font-size:.85rem;font-weight:700;margin-top:8px;letter-spacing:1px}
+.banner-img{height:140px;border-radius:12px;object-fit:cover;opacity:.5}
+.banner-dots{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:6px}
+.banner-dot{width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.5);transition:all .3s;cursor:pointer}
+.banner-dot.active{background:#fff;width:18px}
+.banner-arrow{position:absolute;top:50%;transform:translateY(-50%);width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:1rem;border:none;transition:var(--t);z-index:5}
+.banner-arrow:hover{background:rgba(255,255,255,.4)}
+.banner-prev{left:12px}
+.banner-next{right:12px}
+
+/* ===== SECTION ===== */
+.section{padding:48px 0}
+.section-muted{background:var(--bg3)}
+.section-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:28px}
+.section-title{font-size:1.5rem;font-weight:900}
+.section-sub{font-size:.85rem;color:var(--muted);margin-top:4px}
+.see-all{font-size:.85rem;font-weight:600;color:var(--primary);cursor:pointer}
+.see-all:hover{text-decoration:underline}
+
+/* ===== CATEGORIES ===== */
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.cat-card{position:relative;height:160px;border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:transform var(--t),box-shadow var(--t)}
+.cat-card:hover{transform:scale(1.03);box-shadow:var(--shadow-lg)}
+.cat-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cat-grad{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.65) 0%,transparent 55%)}
+.cat-info{position:absolute;bottom:14px;left:14px;color:#fff}
+.cat-emoji{font-size:1.6rem}
+.cat-name{font-weight:700;font-size:.9rem}
+
+/* ===== ITEM CARD ===== */
+.item-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:transform var(--t),box-shadow var(--t)}
+.item-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+.item-img-wrap{position:relative}
+.item-img{width:100%;height:190px;object-fit:cover}
+.item-badge{position:absolute;top:10px;left:10px;background:var(--primary);color:#fff;font-size:.72rem;font-weight:700;padding:3px 8px;border-radius:20px}
+.veg-dot{position:absolute;top:10px;right:10px;width:22px;height:22px;background:#fff;border:2px solid #fff;border-radius:4px;display:flex;align-items:center;justify-content:center}
+.veg-dot-inner{width:12px;height:12px;border-radius:50%}
+.veg{background:#22c55e}
+.nonveg{background:#ef4444}
+.item-body{padding:14px}
+.item-name{font-weight:700;font-size:.95rem;margin-bottom:4px}
+.item-desc{font-size:.8rem;color:var(--muted);margin-bottom:8px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.item-meta{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--muted);margin-bottom:10px}
+.item-footer{display:flex;align-items:center;justify-content:space-between}
+.item-price{font-size:1.15rem;font-weight:900;color:var(--primary)}
+.add-btn{display:flex;align-items:center;gap:4px;background:var(--primary);color:#fff;padding:7px 14px;border-radius:var(--radius-sm);font-size:.82rem;font-weight:700;transition:var(--t);cursor:pointer;border:none}
+.add-btn:hover{background:var(--primary-dark)}
+
+/* ===== TESTIMONIALS ===== */
+.testimonial-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.testimonial-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:transform var(--t)}
+.testimonial-card:hover{transform:translateY(-4px)}
+.stars{display:flex;gap:2px;margin-bottom:10px;font-size:.9rem;color:#f59e0b}
+.testimonial-text{font-size:.88rem;color:var(--fg2);font-style:italic;margin-bottom:14px;line-height:1.5}
+.testimonial-author{display:flex;align-items:center;gap:10px}
+.author-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover}
+.author-name{font-weight:700;font-size:.88rem}
+.author-loc{font-size:.75rem;color:var(--muted)}
+
+/* ===== FOOTER ===== */
+.footer{background:var(--bg2);border-top:1px solid var(--border);padding:48px 0 24px}
+.footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1.2fr;gap:32px;margin-bottom:32px}
+.footer-logo{display:flex;align-items:center;gap:8px;font-weight:900;font-size:1.1rem;margin-bottom:10px}
+.footer-desc{font-size:.85rem;color:var(--muted);line-height:1.6;margin-bottom:14px}
+.social-links{display:flex;gap:8px}
+.social-btn{width:36px;height:36px;border-radius:10px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:1rem;transition:var(--t);color:var(--muted);cursor:pointer}
+.social-btn:hover{background:var(--primary-light);color:var(--primary)}
+.footer-col h4{font-weight:700;margin-bottom:14px;font-size:.95rem}
+.footer-links{display:flex;flex-direction:column;gap:8px}
+.footer-links a{font-size:.85rem;color:var(--muted);transition:var(--t);cursor:pointer}
+.footer-links a:hover{color:var(--primary)}
+.footer-contact{display:flex;flex-direction:column;gap:10px}
+.contact-item{display:flex;align-items:flex-start;gap:8px;font-size:.85rem;color:var(--muted)}
+.contact-icon{color:var(--primary);font-size:.9rem;flex-shrink:0;margin-top:1px}
+.footer-bottom{border-top:1px solid var(--border);padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:.82rem;color:var(--muted)}
+
+/* ===== PAGE HEADER ===== */
+.page-header{background:var(--bg3);border-bottom:1px solid var(--border);padding:32px 0}
+.page-header h1{font-size:2rem;font-weight:900}
+.page-header p{color:var(--muted);margin-top:4px}
+
+/* ===== MENU ===== */
+.menu-layout{display:flex;gap:24px;padding:32px 0}
+.filter-sidebar{width:230px;flex-shrink:0;position:sticky;top:88px;align-self:flex-start}
+.filter-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.filter-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.filter-title{font-weight:700}
+.filter-clear{font-size:.8rem;color:var(--primary);font-weight:600;cursor:pointer}
+.filter-group{margin-bottom:20px}
+.filter-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px}
+.filter-option{display:block;width:100%;text-align:left;padding:8px 12px;border-radius:var(--radius-sm);font-size:.88rem;color:var(--fg2);transition:var(--t);cursor:pointer;border:none;background:none}
+.filter-option:hover,.filter-option.active{background:var(--primary-light);color:var(--primary);font-weight:600}
+.filter-pref{display:flex;gap:8px}
+.filter-pref-btn{flex:1;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--border);font-size:.82rem;font-weight:500;cursor:pointer;transition:var(--t);background:var(--bg);color:var(--fg2);display:flex;align-items:center;gap:5px;justify-content:center}
+.filter-pref-btn.veg-active{border-color:#22c55e;background:#f0fdf4;color:#16a34a}
+.filter-pref-btn.nonveg-active{border-color:#ef4444;background:#fef2f2;color:#dc2626}
+.price-range{width:100%;accent-color:var(--primary)}
+.range-labels{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);margin-top:4px}
+.menu-main{flex:1;min-width:0}
+.search-bar{position:relative;margin-bottom:20px}
+.search-input{width:100%;padding:12px 16px 12px 44px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--bg2);color:var(--fg);font-size:.92rem;transition:var(--t)}
+.search-input:focus{outline:none;border-color:var(--primary)}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:1rem;color:var(--muted)}
+.results-count{font-size:.85rem;color:var(--muted);margin-bottom:16px}
+.items-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.empty-state{text-align:center;padding:60px 20px;grid-column:1/-1}
+.big-emoji{font-size:3rem;margin-bottom:12px}
+
+/* ===== CHECKOUT ===== */
+.checkout-layout{display:grid;grid-template-columns:1fr 360px;gap:24px;padding:32px 0}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:.82rem;font-weight:600;color:var(--muted);margin-bottom:6px}
+.form-input,.form-select,.form-textarea{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--fg);font-size:.9rem;transition:var(--t)}
+.form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--primary)}
+.form-textarea{resize:none}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pincode-row,.coupon-row{display:flex;gap:8px}
+.pincode-row .form-input,.coupon-row .form-input{flex:1}
+.pincode-msg,.coupon-msg{font-size:.8rem;font-weight:600;margin-top:4px}
+.ok{color:#22c55e}
+.err{color:#ef4444}
+.payment-options{display:flex;flex-direction:column;gap:8px}
+.payment-option{display:flex;align-items:center;gap:12px;padding:14px;border:1.5px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:var(--t)}
+.payment-option.selected{border-color:var(--primary);background:var(--primary-light)}
+.payment-radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:var(--t)}
+.payment-option.selected .payment-radio{border-color:var(--primary)}
+.payment-radio-inner{width:9px;height:9px;border-radius:50%;background:var(--primary);opacity:0;transition:var(--t)}
+.payment-option.selected .payment-radio-inner{opacity:1}
+.divider{height:1px;background:var(--border);margin:12px 0}
+.summary-item{display:flex;gap:10px;margin-bottom:10px}
+.summary-item img{width:52px;height:52px;border-radius:8px;object-fit:cover}
+
+/* ===== ORDERS ===== */
+.order-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:14px}
+.order-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.order-id{font-weight:700}
+.order-date{font-size:.78rem;color:var(--muted);margin-top:3px}
+.status-badge{font-size:.75rem;font-weight:700;padding:4px 10px;border-radius:20px}
+.status-pending{background:#fef3c7;color:#d97706}
+.status-confirmed{background:#dbeafe;color:#1d4ed8}
+.status-preparing{background:#ffedd5;color:#c2410c}
+.status-picked_up{background:#ede9fe;color:#7c3aed}
+.status-delivered{background:#dcfce7;color:#15803d}
+.status-cancelled{background:#fee2e2;color:#dc2626}
+.order-items-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.order-item-chip{font-size:.78rem;background:var(--bg3);padding:4px 10px;border-radius:20px}
+.order-footer{display:flex;align-items:center;justify-content:space-between}
+.order-total{font-weight:800;color:var(--primary);font-size:1rem}
+
+/* ===== TRACK ===== */
+.track-banner{background:linear-gradient(135deg,var(--primary),#c0392b);color:#fff;border-radius:var(--radius-lg);padding:24px;margin-bottom:24px}
+.track-status-val{font-size:1.8rem;font-weight:900;text-transform:capitalize}
+.stepper{display:flex;flex-direction:column}
+.step{display:flex;align-items:flex-start;gap:16px;position:relative}
+.step-line{position:absolute;left:19px;top:40px;width:2px;height:100%;background:var(--border)}
+.step:last-child .step-line{display:none}
+.step-icon{width:40px;height:40px;border-radius:50%;border:2px solid var(--border);background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;z-index:1;transition:var(--t)}
+.step.done .step-icon{border-color:var(--primary);background:var(--primary)}
+.step-content{padding:8px 0 28px}
+.step-label{font-weight:600;font-size:.9rem}
+.step-desc{font-size:.8rem;color:var(--muted);margin-top:2px}
+
+/* ===== ACCOUNT ===== */
+.auth-card{max-width:440px;margin:60px auto}
+.profile-header{display:flex;align-items:center;gap:16px;padding:24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px}
+.avatar{width:56px;height:56px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0}
+.points-banner{background:linear-gradient(135deg,var(--primary),#c0392b);color:#fff;border-radius:var(--radius);padding:20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.points-val{font-size:2.5rem;font-weight:900}
+.referral-code{flex:1;padding:11px;background:var(--bg3);border-radius:var(--radius-sm);font-family:monospace;font-weight:800;letter-spacing:2px;font-size:1rem;text-align:center;border:none;color:var(--fg)}
+
+/* ===== ADMIN ===== */
+.admin-layout{display:flex;min-height:calc(100vh - 64px)}
+.admin-sidebar{width:200px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);padding:24px 12px}
+.admin-logo{display:flex;align-items:center;gap:8px;font-weight:900;font-size:1.1rem;padding:0 8px 20px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.sidebar-section-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:0 8px;margin-bottom:6px}
+.sidebar-link{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);font-size:.88rem;font-weight:500;color:var(--fg2);margin-bottom:2px;cursor:pointer;transition:var(--t);border:none;background:none;width:100%;text-align:left}
+.sidebar-link:hover,.sidebar-link.active{background:var(--primary-light);color:var(--primary);font-weight:600}
+.admin-main{flex:1;padding:28px;overflow-y:auto}
+.admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+.stat-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.stat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:12px}
+.stat-val{font-size:1.8rem;font-weight:900}
+.stat-label{font-size:.8rem;color:var(--muted);margin-top:2px}
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px}
+.chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.chart-title{font-weight:700;font-size:1rem}
+.chart-wrap{height:200px;display:flex;align-items:flex-end;gap:8px;padding-bottom:24px;position:relative}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.bar{width:100%;background:var(--primary);border-radius:6px 6px 0 0;min-height:4px;cursor:pointer;position:relative}
+.bar:hover::after{content:attr(data-val);position:absolute;top:-28px;left:50%;transform:translateX(-50%);background:var(--fg);color:var(--bg2);font-size:.72rem;padding:3px 8px;border-radius:6px;white-space:nowrap;font-weight:600}
+.bar-label{font-size:.7rem;color:var(--muted);text-align:center;margin-top:4px}
+.orders-table{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.table-header{padding:20px 24px;font-weight:700;border-bottom:1px solid var(--border)}
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{text-align:left;padding:10px 16px;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--border);background:var(--bg3)}
+.data-table td{padding:13px 16px;font-size:.88rem;border-bottom:1px solid var(--border)}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:var(--bg3)}
+.status-select{padding:4px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);font-size:.78rem;font-weight:600;cursor:pointer;color:var(--fg)}
+.action-btn{padding:4px 10px;border-radius:var(--radius-sm);font-size:.78rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--fg2);transition:var(--t)}
+.action-btn:hover{background:var(--primary-light);color:var(--primary);border-color:var(--primary)}
+.action-btn.del:hover{background:#fee2e2;color:#dc2626;border-color:#ef4444}
+
+/* ===== CUSTOMIZE MODAL ===== */
+.customize-name{font-size:1.2rem;font-weight:800;margin-bottom:4px}
+.customize-price{color:var(--primary);font-weight:700;font-size:1rem;margin-bottom:20px}
+.option-group{margin-bottom:20px}
+.option-group-label{font-size:.82rem;font-weight:700;margin-bottom:10px;color:var(--fg2)}
+.option-pills{display:flex;flex-wrap:wrap;gap:8px}
+.option-pill{padding:8px 16px;border:1.5px solid var(--border);border-radius:8px;font-size:.85rem;font-weight:500;cursor:pointer;transition:var(--t);background:var(--bg)}
+.option-pill:hover,.option-pill.selected{border-color:var(--primary);color:var(--primary)}
+.option-pill.selected{background:var(--primary-light);font-weight:700}
+.addon-option{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:var(--t);background:var(--bg)}
+.addon-option.selected{border-color:var(--primary);background:var(--primary-light)}
+.addon-left{display:flex;align-items:center;gap:10px}
+.checkbox{width:20px;height:20px;border:2px solid var(--border);border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--t)}
+.addon-option.selected .checkbox{background:var(--primary);border-color:var(--primary);color:#fff}
+.qty-row{display:flex;align-items:center;gap:14px;margin-top:24px}
+.modal-add-btn{flex:1;padding:13px;background:var(--primary);color:#fff;border-radius:var(--radius);font-weight:800;font-size:.95rem;cursor:pointer;border:none;transition:var(--t)}
+.modal-add-btn:hover{background:var(--primary-dark)}
+
+/* ===== SKELETON ===== */
+.skeleton{background:linear-gradient(90deg,var(--bg3) 25%,var(--border) 50%,var(--bg3) 75%);background-size:200%;animation:shimmer 1.4s infinite;border-radius:var(--radius)}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:900px){
+  .stat-cards{grid-template-columns:repeat(2,1fr)}
+  .footer-grid{grid-template-columns:1fr 1fr}
+  .testimonial-grid{grid-template-columns:1fr 1fr}
+  .features-grid{grid-template-columns:1fr}
+  .items-grid{grid-template-columns:repeat(2,1fr)}
+  .checkout-layout{grid-template-columns:1fr}
+}
+@media(max-width:680px){
+  .nav-links{display:none}
+  .hamburger{display:flex}
+  .hero-inner{flex-direction:column;text-align:center;padding:56px 20px}
+  .hero-btns{justify-content:center}
+  .hero-img-wrap{display:none}
+  .items-grid{grid-template-columns:1fr 1fr}
+  .menu-layout{flex-direction:column}
+  .filter-sidebar{width:100%;position:static}
+  .testimonial-grid{grid-template-columns:1fr}
+  .footer-grid{grid-template-columns:1fr}
+  .admin-layout{flex-direction:column}
+  .admin-sidebar{width:100%;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px}
+}
+@media(max-width:480px){
+  .cat-grid{grid-template-columns:1fr 1fr}
+  .items-grid{grid-template-columns:1fr}
+  .banner-wrap{height:140px}
+  .banner-title{font-size:1.6rem}
+  .banner-img{display:none}
+  .stat-cards{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<header class="navbar" id="navbar">
+  <div class="container navbar-inner">
+    <div class="logo" onclick="navigate('home')">
+      <div class="logo-icon">🍽️</div>
+      <span>Carnatic<span class="text-primary">Military Hotel</span></span>
+    </div>
+    <nav class="nav-links">
+      <div class="nav-link active" data-page="home" onclick="navigate('home')">Home</div>
+      <div class="nav-link" data-page="menu" onclick="navigate('menu')">Menu</div>
+      <div class="nav-link" data-page="orders" onclick="navigate('orders')">My Orders</div>
+      <div class="nav-link" data-page="account" onclick="navigate('account')">Account</div>
+    </nav>
+    <div class="nav-actions">
+      <button class="btn-icon" id="themeToggle" title="Toggle theme">🌙</button>
+      <button class="btn-icon cart-btn" id="cartBtn">
+        🛒<span class="cart-badge hidden" id="cartBadge">0</span>
+      </button>
+      <button class="btn-icon hamburger" id="hamburger">☰</button>
+    </div>
+  </div>
+  <div class="mobile-nav hidden" id="mobileNav">
+    <div class="mobile-nav-link" onclick="navigate('home');closeMobile()">Home</div>
+    <div class="mobile-nav-link" onclick="navigate('menu');closeMobile()">Menu</div>
+    <div class="mobile-nav-link" onclick="navigate('orders');closeMobile()">My Orders</div>
+    <div class="mobile-nav-link" onclick="navigate('account');closeMobile()">Account</div>
+  </div>
+</header>
+
+<!-- CART DRAWER -->
+<div class="overlay hidden" id="cartOverlay" onclick="closeCart()"></div>
+<aside class="cart-drawer" id="cartDrawer">
+  <div class="cart-header">
+    <div class="cart-title">
+      <span>🛍️</span><h2>Your Cart</h2>
+      <span class="cart-count" id="cartCountLabel">0</span>
+    </div>
+    <button class="btn-icon" onclick="closeCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-footer hidden" id="cartFooter">
+    <div class="price-row"><span class="text-muted">Subtotal</span><span id="cfSubtotal">₹0</span></div>
+    <div class="price-row"><span class="text-muted">Delivery</span><span>₹40</span></div>
+    <div class="price-row"><span class="text-muted">Tax (5%)</span><span id="cfTax">₹0</span></div>
+    <div class="price-row total"><span>Total</span><span class="text-primary fw-bold" id="cfTotal">₹0</span></div>
+    <button class="btn btn-primary btn-block mt-2" onclick="closeCart();navigate('cart')">Proceed to Checkout</button>
+  </div>
+</aside>
+
+<!-- CUSTOMIZE MODAL -->
+<div class="modal-overlay hidden" id="customizeOverlay" onclick="e=>e.target===this&&closeCustomize()">
+  <div class="modal" id="customizeModal">
+    <button class="modal-close" onclick="closeCustomize()">✕</button>
+    <div id="customizeContent"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<main id="app"></main>
+
+<!-- TOAST -->
+<div class="toast hidden" id="toast"></div>
+
+<script>
+// ===== MOCK DATA =====
+const MENU_ITEMS = [
+  {id:1,name:"Butter Chicken",description:"Tender chicken in a rich, creamy tomato-based curry sauce with aromatic spices",price:280,imageUrl:"https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=400&auto=format&fit=crop",category:"Indian",brand:"SpiceBox Kitchen",isVeg:false,rating:4.8,reviewCount:342,isFeatured:true,isAvailable:true,spiceLevels:["Mild","Medium","Hot","Extra Hot"],portionSizes:[{label:"Regular",priceMultiplier:1},{label:"Large",priceMultiplier:1.4}],addOns:[{name:"Extra Naan",price:30},{name:"Raita",price:40}]},
+  {id:2,name:"Dal Makhani",description:"Slow-cooked black lentils in a buttery, smoky tomato gravy — a classic comfort dish",price:220,imageUrl:"https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&auto=format&fit=crop",category:"Indian",brand:"SpiceBox Kitchen",isVeg:true,rating:4.6,reviewCount:218,isFeatured:true,isAvailable:true,spiceLevels:["Mild","Medium","Hot"],portionSizes:[{label:"Regular",priceMultiplier:1},{label:"Large",priceMultiplier:1.3}],addOns:[{name:"Tandoori Roti",price:20}]},
+  {id:3,name:"Paneer Tikka Masala",description:"Grilled paneer cubes simmered in a vibrant, spiced tomato-onion masala",price:260,imageUrl:"https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400&auto=format&fit=crop",category:"Indian",brand:"SpiceBox Kitchen",isVeg:true,rating:4.7,reviewCount:189,isFeatured:true,isAvailable:true,spiceLevels:["Mild","Medium","Hot","Extra Hot"],portionSizes:[{label:"Regular",priceMultiplier:1},{label:"Large",priceMultiplier:1.4}],addOns:[{name:"Extra Naan",price:30}]},
+  {id:4,name:"Chicken Fried Rice",description:"Wok-tossed rice with chicken, eggs, spring onions, and soy sauce",price:200,imageUrl:"https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=400&auto=format&fit=crop",category:"Chinese",brand:"Dragon Wok",isVeg:false,rating:4.5,reviewCount:156,isFeatured:true,isAvailable:true,spiceLevels:["Mild","Spicy"],portionSizes:[{label:"Regular",priceMultiplier:1},{label:"Large",priceMultiplier:1.5}],addOns:[{name:"Manchurian Gravy",price:60}]},
+  {id:5,name:"Veg Manchurian",description:"Crispy vegetable dumplings tossed in a tangy, spicy Manchurian sauce",price:180,imageUrl:"https://images.unsplash.com/photo-1563379091339-03246963d96c?w=400&auto=format&fit=crop",category:"Chinese",brand:"Dragon Wok",isVeg:true,rating:4.4,reviewCount:124,isFeatured:true,isAvailable:true,spiceLevels:["Mild","Medium","Hot"],portionSizes:[{label:"Regular",priceMultiplier:1},{label:"Large",priceMultiplier:1.4}],addOns:[]},
+  {id:6,name:"Chicken Chowmein",description:"Stir-fried noodles loaded with chicken and crisp vegetables in savory sauce",price:190,imageUrl:"https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=400&auto=format&fit=crop",category:"Chinese",brand:"Dragon Wok",isVeg:false,rating:4.3,reviewCount:98,isFeatured:false,isAvailable:true,spiceLevels:["Mild","Spicy"],portionSizes:[{label:"Regular",priceMultiplier:1},{label:"Large",priceMultiplier:1.5}],addOns:[]},
+  {id:7,name:"Gulab Jamun",description:"Soft milk-solid dumplings soaked in rose-cardamom sugar syrup",price:120,imageUrl:"https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&auto=format&fit=crop",category:"Desserts",brand:"Sweet Stop",isVeg:true,rating:4.9,reviewCount:276,isFeatured:true,isAvailable:true,spiceLevels:[],portionSizes:[{label:"2 pcs",priceMultiplier:1},{label:"4 pcs",priceMultiplier:1.8}],addOns:[{name:"Ice Cream Scoop",price:50}]},
+  {id:8,name:"Biryani",description:"Fragrant basmati rice layered with spiced meat, caramelised onions, and saffron",price:320,imageUrl:"https://images.unsplash.com/photo-1563379091339-03246963d96c?w=400&auto=format&fit=crop",category:"Indian",brand:"SpiceBox Kitchen",isVeg:false,rating:4.9,reviewCount:421,isFeatured:true,isAvailable:true,spiceLevels:["Mild","Medium","Hot"],portionSizes:[{label:"Regular",priceMultiplier:1},{label:"Large",priceMultiplier:1.5}],addOns:[{name:"Raita",price:40},{name:"Salan",price:50}]},
+  {id:9,name:"Choco Lava Cake",description:"Warm chocolate cake with a gooey molten centre, served with vanilla ice cream",price:160,imageUrl:"https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&auto=format&fit=crop",category:"Desserts",brand:"Sweet Stop",isVeg:true,rating:4.7,reviewCount:203,isFeatured:false,isAvailable:true,spiceLevels:[],portionSizes:[{label:"Single",priceMultiplier:1},{label:"Double",priceMultiplier:1.8}],addOns:[{name:"Extra Ice Cream",price:40}]},
+  {id:10,name:"Hakka Noodles",description:"Classic Hakka-style noodles tossed with fresh vegetables and aromatic sauces",price:170,imageUrl:"https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=400&auto=format&fit=crop",category:"Chinese",brand:"Dragon Wok",isVeg:true,rating:4.2,reviewCount:87,isFeatured:false,isAvailable:true,spiceLevels:["Mild","Spicy"],portionSizes:[{label:"Regular",priceMultiplier:1}],addOns:[]},
+  {id:11,name:"Kadai Paneer",description:"Paneer cooked with bell peppers and onions in a robust kadai masala",price:240,imageUrl:"https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400&auto=format&fit=crop",category:"Indian",brand:"SpiceBox Kitchen",isVeg:true,rating:4.5,reviewCount:142,isFeatured:false,isAvailable:true,spiceLevels:["Mild","Medium","Hot","Extra Hot"],portionSizes:[{label:"Regular",priceMultiplier:1},{label:"Large",priceMultiplier:1.4}],addOns:[{name:"Tandoori Roti",price:20}]},
+  {id:12,name:"Rasgulla",description:"Spongy cottage cheese balls dunked in light sugar syrup — a Bengali classic",price:100,imageUrl:"https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&auto=format&fit=crop",category:"Desserts",brand:"Sweet Stop",isVeg:true,rating:4.6,reviewCount:165,isFeatured:false,isAvailable:true,spiceLevels:[],portionSizes:[{label:"2 pcs",priceMultiplier:1},{label:"4 pcs",priceMultiplier:1.75}],addOns:[]}
+];
+
+const TESTIMONIALS = [
+  {id:1,name:"Priya Sharma",comment:"Absolutely love the Butter Chicken! It tastes just like a restaurant meal delivered right to my door in under 30 minutes.",rating:5,location:"Andheri, Mumbai",avatarUrl:"https://i.pravatar.cc/40?img=47"},
+  {id:2,name:"Rahul Mehta",comment:"The Biryani is exceptional — perfectly spiced and generous portions. Best cloud kitchen I've ordered from!",rating:5,location:"Bandra, Mumbai",avatarUrl:"https://i.pravatar.cc/40?img=32"},
+  {id:3,name:"Anika Patel",comment:"Choco Lava Cake is to die for! Always fresh, always on time. SpiceBox never disappoints.",rating:4,location:"Powai, Mumbai",avatarUrl:"https://i.pravatar.cc/40?img=44"}
+];
+
+const CATEGORIES = ["Indian","Chinese","Desserts"];
+const BRANDS = ["SpiceBox Kitchen","Dragon Wok","Sweet Stop"];
+const COUPONS = {
+  WELCOME50:{discount:50,minOrder:0,description:"50% off first order"},
+  FLAT40:{discount:40,minOrder:200,description:"₹40 flat discount"},
+  SPICE20:{discount:20,minOrder:150,description:"₹20 off"}
+};
+
+// ===== STATE =====
+let cart = JSON.parse(localStorage.getItem('spicebox_cart')||'[]');
+let orders = JSON.parse(localStorage.getItem('spicebox_orders')||'[]');
+let userId = localStorage.getItem('spicebox_user')||null;
+let userProfile = JSON.parse(localStorage.getItem('spicebox_profile')||'null');
+let darkMode = localStorage.getItem('spicebox_dark')==='true';
+let currentPage = 'home';
+let menuFilters = {search:'',category:'',brand:'',isVeg:null,maxPrice:null};
+let checkoutState = {address:'',pincode:'',pincodeOk:false,coupon:'',discount:0,payment:'cod'};
+let customizeItem = null;
+let customizeState = {};
+let bannerIdx = 0;
+let bannerTimer;
+
+// ===== HELPERS =====
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const fp = p => '₹'+Number(p).toFixed(0);
+const starsHtml = n => '★'.repeat(Math.round(n))+'☆'.repeat(5-Math.round(n));
+
+function showToast(msg,d=2500){
+  const t=$('#toast');t.textContent=msg;t.classList.remove('hidden');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.add('hidden'),d);
+}
+function saveCart(){localStorage.setItem('spicebox_cart',JSON.stringify(cart));updateCartUI();}
+function saveOrders(){localStorage.setItem('spicebox_orders',JSON.stringify(orders));}
+function cartTotal(){return cart.reduce((s,i)=>s+i.price*i.quantity,0);}
+function cartCount(){return cart.reduce((s,i)=>s+i.quantity,0);}
+
+// ===== THEME =====
+function applyTheme(){
+  document.body.classList.toggle('dark',darkMode);
+  $('#themeToggle').textContent=darkMode?'☀️':'🌙';
+}
+$('#themeToggle').onclick=()=>{darkMode=!darkMode;localStorage.setItem('spicebox_dark',darkMode);applyTheme();};
+$('#hamburger').onclick=()=>$('#mobileNav').classList.toggle('hidden');
+function closeMobile(){$('#mobileNav').classList.add('hidden');}
+applyTheme();
+
+// ===== CART UI =====
+function updateCartUI(){
+  const count=cartCount();
+  const badge=$('#cartBadge');if(badge){badge.textContent=count>9?'9+':count;badge.classList.toggle('hidden',count===0);}
+  const lbl=$('#cartCountLabel');if(lbl)lbl.textContent=count;
+  renderCartDrawer();
+}
+function renderCartDrawer(){
+  const ci=$('#cartItems'),cf=$('#cartFooter');if(!ci)return;
+  if(!cart.length){
+    ci.innerHTML=`<div class="cart-empty"><div class="empty-icon">🛒</div><p class="fw-bold">Cart is empty</p><p class="text-muted sm">Add something delicious</p><br><button class="btn btn-primary" onclick="closeCart();navigate('menu')">Browse Menu</button></div>`;
+    cf&&cf.classList.add('hidden');return;
+  }
+  cf&&cf.classList.remove('hidden');
+  ci.innerHTML=cart.map(i=>`
+    <div class="cart-item">
+      <img src="${i.imageUrl}" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200'" />
+      <div class="cart-item-info">
+        <div class="cart-item-name">${i.name}</div>
+        ${i.spiceLevel?`<div class="cart-item-meta">${i.spiceLevel}</div>`:''}
+        <div class="cart-item-price">${fp(i.price*i.quantity)}</div>
+        <div class="qty-controls">
+          <button class="qty-btn" onclick="cartQty('${i.cartItemId}',-1)">−</button>
+          <span class="qty-num">${i.quantity}</span>
+          <button class="qty-btn plus" onclick="cartQty('${i.cartItemId}',1)">+</button>
+        </div>
+      </div>
+      <span class="cart-item-del" onclick="cartRemove('${i.cartItemId}')">🗑️</span>
+    </div>`).join('');
+  const sub=cartTotal(),tax=sub*.05,total=sub+40+tax;
+  ['cfSubtotal','cfTax','cfTotal'].forEach((id,idx)=>{const el=$(('#'+id));if(el)el.textContent=fp([sub,tax,total][idx]);});
+}
+function cartQty(id,d){const i=cart.find(x=>x.cartItemId===id);if(!i)return;i.quantity+=d;if(i.quantity<=0)cart=cart.filter(x=>x.cartItemId!==id);saveCart();}
+function cartRemove(id){cart=cart.filter(x=>x.cartItemId!==id);saveCart();}
+function addToCart(item){
+  const ex=cart.find(i=>i.menuItemId===item.menuItemId&&i.spiceLevel===item.spiceLevel&&i.portionSize===item.portionSize&&JSON.stringify(i.addOns||[])===JSON.stringify(item.addOns||[]));
+  if(ex){ex.quantity+=item.quantity;}else{cart.push({...item,cartItemId:Math.random().toString(36).slice(2,11)});}
+  saveCart();openCart();showToast(`Added ${item.name} 🎉`);
+}
+function openCart(){$('#cartOverlay').classList.remove('hidden');$('#cartDrawer').classList.add('open');}
+function closeCart(){$('#cartOverlay').classList.add('hidden');$('#cartDrawer').classList.remove('open');}
+$('#cartBtn').onclick=openCart;
+
+// ===== CUSTOMIZE MODAL =====
+function openCustomize(item){
+  customizeItem=item;
+  customizeState={spiceLevel:item.spiceLevels?.[0]||'',portionSize:item.portionSizes?.[0]?.label||'',addOns:[],qty:1};
+  renderCustomize();$('#customizeOverlay').classList.remove('hidden');
+}
+function closeCustomize(){$('#customizeOverlay').classList.add('hidden');}
+$('#customizeOverlay').onclick=e=>{if(e.target===$('#customizeOverlay'))closeCustomize();};
+function renderCustomize(){
+  const item=customizeItem;if(!item)return;
+  const pm=item.portionSizes?.find(p=>p.label===customizeState.portionSize)?.priceMultiplier||1;
+  const addonTotal=customizeState.addOns.reduce((s,n)=>{const a=item.addOns?.find(x=>x.name===n);return s+(a?.price||0);},0);
+  const total=(item.price*pm+addonTotal)*customizeState.qty;
+  $('#customizeContent').innerHTML=`
+    <h3 class="customize-name">${item.name}</h3>
+    <p class="customize-price">${fp(item.price)}</p>
+    ${item.spiceLevels?.length?`<div class="option-group"><div class="option-group-label">🌶️ Spice Level</div><div class="option-pills">${item.spiceLevels.map(l=>`<div class="option-pill ${customizeState.spiceLevel===l?'selected':''}" onclick="cSelect('spice','${l}')">${l}</div>`).join('')}</div></div>`:''}
+    ${item.portionSizes?.length>1?`<div class="option-group"><div class="option-group-label">🍽️ Portion Size</div><div class="option-pills">${item.portionSizes.map(p=>`<div class="option-pill ${customizeState.portionSize===p.label?'selected':''}" onclick="cSelect('portion','${p.label}')">${p.label} — ${fp(item.price*p.priceMultiplier)}</div>`).join('')}</div></div>`:''}
+    ${item.addOns?.length?`<div class="option-group"><div class="option-group-label">➕ Add-ons</div>${item.addOns.map(a=>`<div class="addon-option ${customizeState.addOns.includes(a.name)?'selected':''}" onclick="cToggleAddon('${a.name}')"><div class="addon-left"><div class="checkbox">${customizeState.addOns.includes(a.name)?'✓':''}</div><span>${a.name}</span></div><span class="text-primary fw-bold">+${fp(a.price)}</span></div>`).join('')}</div>`:''}
+    <div class="qty-row">
+      <div class="qty-controls">
+        <button class="qty-btn" onclick="cQty(-1)">−</button>
+        <span class="qty-num">${customizeState.qty}</span>
+        <button class="qty-btn plus" onclick="cQty(1)">+</button>
+      </div>
+      <button class="modal-add-btn" onclick="cAdd()">Add to Cart — ${fp(total)}</button>
+    </div>`;
+}
+function cSelect(type,val){if(type==='spice')customizeState.spiceLevel=val;else customizeState.portionSize=val;renderCustomize();}
+function cToggleAddon(name){customizeState.addOns.includes(name)?customizeState.addOns=customizeState.addOns.filter(a=>a!==name):customizeState.addOns.push(name);renderCustomize();}
+function cQty(d){customizeState.qty=Math.max(1,customizeState.qty+d);renderCustomize();}
+function cAdd(){
+  const item=customizeItem;
+  const pm=item.portionSizes?.find(p=>p.label===customizeState.portionSize)?.priceMultiplier||1;
+  const addonTotal=customizeState.addOns.reduce((s,n)=>{const a=item.addOns?.find(x=>x.name===n);return s+(a?.price||0);},0);
+  addToCart({menuItemId:item.id,name:item.name,price:item.price*pm+addonTotal,quantity:customizeState.qty,imageUrl:item.imageUrl,spiceLevel:customizeState.spiceLevel||undefined,portionSize:customizeState.portionSize||undefined,addOns:customizeState.addOns.length?customizeState.addOns:undefined});
+  closeCustomize();
+}
+
+// ===== ROUTER =====
+function navigate(page,params={}){
+  currentPage=page;
+  $$('[data-page]').forEach(l=>l.classList.toggle('active',l.dataset.page===page));
+  const routes={home:renderHome,menu:renderMenu,cart:renderCart,orders:renderOrders,account:renderAccount,admin:renderAdmin,adminmenu:renderAdminMenu,track:renderTrack};
+  (routes[page]||renderHome)(params);
+  window.scrollTo(0,0);
+}
+
+// ===== BANNER =====
+const banners=[
+  {title:'50% OFF',sub:'On your first order',code:'WELCOME50',img:'https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=400&auto=format',cls:'banner-slide-1'},
+  {title:'Free Delivery',sub:'On orders above ₹499',code:'FREEDEL',img:'https://images.unsplash.com/photo-1563379091339-03246963d96c?w=400&auto=format',cls:'banner-slide-2'},
+  {title:'Combo Deals',sub:'Meal for 2 starting ₹499',code:'COMBO2',img:'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400&auto=format',cls:'banner-slide-3'},
+];
+function moveBanner(dir){
+  bannerIdx=(bannerIdx+dir+banners.length)%banners.length;
+  $$('.banner-slide').forEach((s,i)=>s.classList.toggle('active',i===bannerIdx));
+  $$('.banner-dot').forEach((d,i)=>d.classList.toggle('active',i===bannerIdx));
+  clearInterval(bannerTimer);bannerTimer=setInterval(()=>moveBanner(1),4000);
+}
+
+// ===== HOME =====
+function renderHome(){
+  $('#app').innerHTML=`
+    <div class="hero">
+      <div class="hero-inner">
+        <div class="hero-text">
+          <div class="hero-badge">☁️ Cloud Kitchen — Mumbai</div>
+          <h1>Restaurant Quality<br><span class="hero-yellow">At Your Door</span></h1>
+          <p class="hero-sub">SpiceBox delivers bold Indian, Chinese, and dessert specialties — crafted in our hygienic cloud kitchen, delivered in 30 minutes.</p>
+          <div class="hero-btns">
+            <div class="hero-btn-primary" onclick="navigate('menu')">Order Now →</div>
+            <div class="hero-btn-secondary" onclick="navigate('menu')">View Menu</div>
+          </div>
+        </div>
+        <div class="hero-img-wrap">
+          <img class="hero-img" src="https://images.unsplash.com/photo-1563379091339-03246963d96c?w=600&auto=format&fit=crop" alt="Biryani" />
+        </div>
+      </div>
+    </div>
+
+    <div class="features-bar"><div class="container">
+      <div class="features-grid">
+        <div class="feature-card"><div class="feature-icon">⏱️</div><div><div class="feature-title">30 Min Delivery</div><div class="feature-sub">From kitchen to doorstep</div></div></div>
+        <div class="feature-card"><div class="feature-icon">🛡️</div><div><div class="feature-title">FSSAI Certified</div><div class="feature-sub">Safe & hygienic food</div></div></div>
+        <div class="feature-card"><div class="feature-icon">🚚</div><div><div class="feature-title">Free on ₹499+</div><div class="feature-sub">No hidden charges</div></div></div>
+      </div>
+    </div></div>
+
+    <div class="banner-section"><div class="container">
+      <div class="banner-wrap">
+        ${banners.map((b,i)=>`<div class="banner-slide ${b.cls} ${i===0?'active':''}"><div class="banner-text"><div class="banner-title">${b.title}</div><div class="banner-sub">${b.sub}</div><div class="banner-code">Use: ${b.code}</div></div><img class="banner-img" src="${b.img}" /></div>`).join('')}
+        <button class="banner-arrow banner-prev" onclick="moveBanner(-1)">‹</button>
+        <button class="banner-arrow banner-next" onclick="moveBanner(1)">›</button>
+        <div class="banner-dots">${banners.map((_,i)=>`<div class="banner-dot ${i===0?'active':''}" onclick="moveBanner(${i-bannerIdx})"></div>`).join('')}</div>
+      </div>
+    </div></div>
+
+    <div class="section"><div class="container">
+      <div class="section-header"><div><div class="section-title">Browse by Cuisine</div></div></div>
+      <div class="cat-grid">
+        <div class="cat-card" onclick="navigate('menu',{category:'Indian'})"><img src="https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&auto=format&fit=crop" /><div class="cat-grad"></div><div class="cat-info"><div class="cat-emoji">🍛</div><div class="cat-name">Indian</div></div></div>
+        <div class="cat-card" onclick="navigate('menu',{category:'Chinese'})"><img src="https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=400&auto=format&fit=crop" /><div class="cat-grad"></div><div class="cat-info"><div class="cat-emoji">🥢</div><div class="cat-name">Chinese</div></div></div>
+        <div class="cat-card" onclick="navigate('menu',{category:'Desserts'})"><img src="https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&auto=format&fit=crop" /><div class="cat-grad"></div><div class="cat-info"><div class="cat-emoji">🍮</div><div class="cat-name">Desserts</div></div></div>
+      </div>
+    </div></div>
+
+    <div class="section section-muted"><div class="container">
+      <div class="section-header">
+        <div><div class="section-title">Featured Dishes</div><div class="section-sub">Our most loved items</div></div>
+        <div class="see-all" onclick="navigate('menu')">View all →</div>
+      </div>
+      <div class="items-grid">
+        ${MENU_ITEMS.filter(i=>i.isFeatured).slice(0,6).map(itemCardHtml).join('')}
+      </div>
+    </div></div>
+
+    <div class="section"><div class="container">
+      <div class="section-header"><div class="section-title" style="text-align:center;width:100%">What Our Customers Say</div></div>
+      <div class="testimonial-grid">
+        ${TESTIMONIALS.map(t=>`
+          <div class="testimonial-card">
+            <div class="stars">${starsHtml(t.rating)}</div>
+            <div class="testimonial-text">"${t.comment}"</div>
+            <div class="testimonial-author">
+              <img class="author-avatar" src="${t.avatarUrl}" />
+              <div><div class="author-name">${t.name}</div><div class="author-loc">${t.location}</div></div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div></div>
+
+    ${renderFooter()}`;
+  clearInterval(bannerTimer);bannerTimer=setInterval(()=>moveBanner(1),4000);
+}
+
+// ===== ITEM CARD =====
+function itemCardHtml(item){
+  return `<div class="item-card">
+    <div class="item-img-wrap">
+      <img class="item-img" src="${item.imageUrl}" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'" />
+      ${item.isFeatured?'<div class="item-badge">Popular</div>':''}
+      <div class="veg-dot"><div class="veg-dot-inner ${item.isVeg?'veg':'nonveg'}"></div></div>
+    </div>
+    <div class="item-body">
+      <div class="item-name">${item.name}</div>
+      <div class="item-desc">${item.description}</div>
+      <div class="item-meta"><span style="color:#f59e0b">★</span><strong>${item.rating.toFixed(1)}</strong><span>(${item.reviewCount})</span><span>·</span><span>${item.brand}</span></div>
+      <div class="item-footer">
+        <div class="item-price">${fp(item.price)}</div>
+        <button class="add-btn" onclick="handleAdd(${item.id})">+ Add</button>
+      </div>
+    </div>
+  </div>`;
+}
+function handleAdd(id){
+  const item=MENU_ITEMS.find(i=>i.id===id);if(!item)return;
+  const needs=(item.spiceLevels?.length>0)||(item.portionSizes?.length>1)||(item.addOns?.length>0);
+  if(needs)openCustomize(item);
+  else addToCart({menuItemId:item.id,name:item.name,price:item.price,quantity:1,imageUrl:item.imageUrl});
+}
+
+// ===== MENU PAGE =====
+function renderMenu(params={}){
+  if(params.category)menuFilters.category=params.category;
+  $('#app').innerHTML=`
+    <div class="page-header"><div class="container"><h1>Our Menu</h1><p>Fresh food, bold flavors — order your favorites</p></div></div>
+    <div class="container">
+      <div class="menu-layout">
+        <aside class="filter-sidebar">
+          <div class="filter-card">
+            <div class="filter-header"><div class="filter-title">Filters</div><span class="filter-clear" onclick="clearFilters()">Clear all</span></div>
+            <div class="filter-group">
+              <div class="filter-label">Cuisine</div>
+              <button class="filter-option ${!menuFilters.category?'active':''}" onclick="setFilter('category','')">All Cuisines</button>
+              ${CATEGORIES.map(c=>`<button class="filter-option ${menuFilters.category===c?'active':''}" onclick="setFilter('category','${c}')">${c}</button>`).join('')}
+            </div>
+            <div class="filter-group">
+              <div class="filter-label">Brand</div>
+              <button class="filter-option ${!menuFilters.brand?'active':''}" onclick="setFilter('brand','')">All Brands</button>
+              ${BRANDS.map(b=>`<button class="filter-option ${menuFilters.brand===b?'active':''}" onclick="setFilter('brand','${b}')">${b}</button>`).join('')}
+            </div>
+            <div class="filter-group">
+              <div class="filter-label">Preference</div>
+              <div class="filter-pref">
+                <button class="filter-pref-btn ${menuFilters.isVeg===true?'veg-active':''}" onclick="setFilter('isVeg',${menuFilters.isVeg===true?null:true})">🟢 Veg</button>
+                <button class="filter-pref-btn ${menuFilters.isVeg===false?'nonveg-active':''}" onclick="setFilter('isVeg',${menuFilters.isVeg===false?null:false})">🔴 Non-Veg</button>
+              </div>
+            </div>
+            <div class="filter-group">
+              <div class="filter-label">Max Price: ${menuFilters.maxPrice?fp(menuFilters.maxPrice):'Any'}</div>
+              <input type="range" class="price-range" min="50" max="500" step="50" value="${menuFilters.maxPrice||500}" oninput="setFilter('maxPrice',+this.value===500?null:+this.value)" />
+              <div class="range-labels"><span>₹50</span><span>₹500</span></div>
+            </div>
+          </div>
+        </aside>
+        <div class="menu-main">
+          <div class="search-bar">
+            <span class="search-icon">🔍</span>
+            <input type="search" class="search-input" placeholder="Search dishes..." value="${menuFilters.search}" oninput="setFilter('search',this.value)" />
+          </div>
+          <div id="menuResults"></div>
+        </div>
+      </div>
+    </div>
+    ${renderFooter()}`;
+  updateMenuResults();
+}
+function updateMenuResults(){
+  let items=MENU_ITEMS;
+  if(menuFilters.category)items=items.filter(i=>i.category===menuFilters.category);
+  if(menuFilters.brand)items=items.filter(i=>i.brand===menuFilters.brand);
+  if(menuFilters.isVeg!==null&&menuFilters.isVeg!==undefined)items=items.filter(i=>i.isVeg===menuFilters.isVeg);
+  if(menuFilters.maxPrice)items=items.filter(i=>i.price<=menuFilters.maxPrice);
+  if(menuFilters.search)items=items.filter(i=>i.name.toLowerCase().includes(menuFilters.search.toLowerCase())||i.description.toLowerCase().includes(menuFilters.search.toLowerCase()));
+  const el=$('#menuResults');if(!el)return;
+  el.innerHTML=`<div class="results-count">${items.length} items found</div><div class="items-grid">${items.length?items.map(itemCardHtml).join(''):'<div class="empty-state"><div class="big-emoji">🔍</div><p class="fw-bold">No items found</p><p class="text-muted">Try adjusting your filters</p><br><button class="btn btn-primary" onclick="clearFilters()">Clear Filters</button></div>'}</div>`;
+}
+function setFilter(key,val){
+  menuFilters[key]=val;
+  if(currentPage==='menu')renderMenu();
+}
+function clearFilters(){menuFilters={search:'',category:'',brand:'',isVeg:null,maxPrice:null};if(currentPage==='menu')renderMenu();}
+
+// ===== CART PAGE =====
+function renderCart(){
+  if(!cart.length){
+    $('#app').innerHTML=`<div style="min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:40px"><div style="font-size:4rem">🛒</div><h2 class="fw-black" style="font-size:1.5rem">Your cart is empty</h2><p class="text-muted">Add something delicious</p><button class="btn btn-primary mt-2" onclick="navigate('menu')">Browse Menu</button></div>${renderFooter()}`;return;
+  }
+  const sub=cartTotal(),tax=sub*.05,total=sub+40+tax-checkoutState.discount;
+  $('#app').innerHTML=`
+    <div class="page-header"><div class="container"><h1>Checkout</h1></div></div>
+    <div class="container"><div class="checkout-layout">
+      <div>
+        <div class="card mb-2">
+          <h3 style="font-weight:700;margin-bottom:14px">Your Items (${cartCount()})</h3>
+          ${cart.map(i=>`<div class="cart-item" style="margin-bottom:10px">
+            <img src="${i.imageUrl}" style="width:64px;height:64px;border-radius:10px;object-fit:cover;flex-shrink:0" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200'" />
+            <div class="cart-item-info">
+              <div class="cart-item-name">${i.name}</div>
+              ${i.spiceLevel?`<div class="cart-item-meta">${i.spiceLevel}</div>`:''}
+              <div class="cart-item-price">${fp(i.price*i.quantity)}</div>
+              <div class="qty-controls">
+                <button class="qty-btn" onclick="cartQty('${i.cartItemId}',-1);navigate('cart')">−</button>
+                <span class="qty-num">${i.quantity}</span>
+                <button class="qty-btn plus" onclick="cartQty('${i.cartItemId}',1);navigate('cart')">+</button>
+              </div>
+            </div>
+            <span class="cart-item-del" onclick="cartRemove('${i.cartItemId}');navigate('cart')">🗑️</span>
+          </div>`).join('')}
+        </div>
+        <div class="card mb-2">
+          <h3 style="font-weight:700;margin-bottom:12px">🏷️ Promo Code</h3>
+          <div class="coupon-row"><input type="text" class="form-input" id="couponInput" placeholder="WELCOME50, FLAT40, SPICE20" value="${checkoutState.coupon}" /><button class="btn btn-primary" onclick="applyCoupon()">Apply</button></div>
+          <div id="couponMsg" class="coupon-msg"></div>
+          ${checkoutState.discount>0?`<p class="ok" style="font-size:.8rem;margin-top:4px">✅ Discount applied: -${fp(checkoutState.discount)}</p>`:''}
+        </div>
+        <div class="card mb-2">
+          <h3 style="font-weight:700;margin-bottom:12px">📍 Delivery Address</h3>
+          <div class="form-group"><label class="form-label">Full Address</label><textarea class="form-textarea" id="addrInput" rows="2" placeholder="House/flat no, street, landmark...">${checkoutState.address}</textarea></div>
+          <div class="pincode-row"><input type="text" class="form-input" id="pincodeInput" maxlength="6" placeholder="Pincode" value="${checkoutState.pincode}" /><button class="btn btn-outline" onclick="checkPin()">Check</button></div>
+          <div id="pinMsg" class="pincode-msg"></div>
+        </div>
+        <div class="card">
+          <h3 style="font-weight:700;margin-bottom:12px">💳 Payment Method</h3>
+          <div class="payment-options">
+            ${['cod','razorpay'].map((p,i)=>`<div class="payment-option ${checkoutState.payment===p?'selected':''}" onclick="selectPayment('${p}')"><div class="payment-radio"><div class="payment-radio-inner"></div></div><span style="font-size:1.4rem">${['💵','💳'][i]}</span><span style="font-weight:600;font-size:.9rem">${['Cash on Delivery','Razorpay (UPI / Cards)'][i]}</span></div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="position:sticky;top:88px">
+          <h3 style="font-weight:700;margin-bottom:16px">Order Summary</h3>
+          <div>${cart.map(i=>`<div class="summary-item"><img src="${i.imageUrl}" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100'" /><div><div style="font-weight:600;font-size:.85rem">${i.name}</div><div style="font-size:.75rem;color:var(--muted)">×${i.quantity}</div><div style="font-size:.88rem;font-weight:700;color:var(--primary)">${fp(i.price*i.quantity)}</div></div></div>`).join('')}</div>
+          <div class="divider"></div>
+          <div class="price-row"><span class="text-muted">Subtotal</span><span>${fp(sub)}</span></div>
+          <div class="price-row"><span class="text-muted">Delivery</span><span>₹40</span></div>
+          <div class="price-row"><span class="text-muted">Tax (5%)</span><span>${fp(tax)}</span></div>
+          ${checkoutState.discount>0?`<div class="price-row" style="color:#22c55e"><span>Discount</span><span>-${fp(checkoutState.discount)}</span></div>`:''}
+          <div class="divider"></div>
+          <div class="price-row" style="font-size:1rem;font-weight:900"><span>Total</span><span class="text-primary">${fp(total)}</span></div>
+          <button class="btn btn-primary btn-block mt-2" onclick="placeOrder()">Place Order →</button>
+          <p class="text-muted sm" style="text-align:center;margin-top:8px">Add address + check pincode to continue</p>
+        </div>
+      </div>
+    </div></div>
+    ${renderFooter()}`;
+}
+function applyCoupon(){
+  const code=($('#couponInput')?.value||'').trim().toUpperCase();
+  checkoutState.coupon=code;
+  const c=COUPONS[code];
+  const msg=$('#couponMsg');
+  if(c&&cartTotal()>=c.minOrder){checkoutState.discount=c.discount;if(msg){msg.textContent=`✅ ${c.description} applied!`;msg.className='coupon-msg ok';}}
+  else{checkoutState.discount=0;if(msg){msg.textContent=code?'❌ Invalid or not applicable coupon':'';msg.className='coupon-msg err';}}
+  navigate('cart');
+}
+function checkPin(){
+  const pin=($('#pincodeInput')?.value||'').trim();checkoutState.pincode=pin;
+  const ok=['400001','400002','400019','400053','400058','400069','400072'].includes(pin);
+  checkoutState.pincodeOk=ok;
+  const msg=$('#pinMsg');if(msg){msg.textContent=ok?'✅ Delivery available!':'❌ We don\'t deliver to this pincode yet';msg.className='pincode-msg '+(ok?'ok':'err');}
+}
+function selectPayment(m){checkoutState.payment=m;navigate('cart');}
+function placeOrder(){
+  checkoutState.address=($('#addrInput')?.value||'').trim();
+  if(!checkoutState.address||!checkoutState.pincodeOk){showToast('Add delivery address and verify pincode');return;}
+  const sub=cartTotal(),tax=sub*.05,total=sub+40+tax-checkoutState.discount;
+  const order={id:Date.now(),items:[...cart],status:'confirmed',subtotal:sub,deliveryFee:40,tax,total,discount:checkoutState.discount,deliveryAddress:`${checkoutState.address}, ${checkoutState.pincode}`,paymentMethod:checkoutState.payment,createdAt:new Date().toISOString()};
+  orders.push(order);saveOrders();
+  cart=[];saveCart();
+  checkoutState={address:'',pincode:'',pincodeOk:false,coupon:'',discount:0,payment:'cod'};
+  showToast('Order placed successfully! 🎉');
+  navigate('track',{id:order.id});
+}
+
+// ===== ORDERS PAGE =====
+function statusLabel(s){return{pending:'Pending',confirmed:'Confirmed',preparing:'Preparing',picked_up:'Out for Delivery',delivered:'Delivered',cancelled:'Cancelled'}[s]||s;}
+function renderOrders(){
+  $('#app').innerHTML=`
+    <div class="page-header"><div class="container"><h1>My Orders</h1><p>Track and reorder your past meals</p></div></div>
+    <div class="container" style="padding:32px 20px;max-width:700px">
+      ${!orders.length?`<div class="empty-state"><div class="big-emoji">📦</div><p class="fw-bold">No orders yet</p><p class="text-muted">Your orders will appear here</p><button class="btn btn-primary mt-2" onclick="navigate('menu')">Order Now</button></div>`
+      :[...orders].reverse().map(o=>`<div class="order-card">
+        <div class="order-header">
+          <div><div class="order-id">Order #${String(o.id).slice(-6)}</div><div class="order-date">${new Date(o.createdAt).toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div></div>
+          <div class="status-badge status-${o.status}">${statusLabel(o.status)}</div>
+        </div>
+        <div class="order-items-list">${o.items.map(i=>`<span class="order-item-chip">${i.name} ×${i.quantity}</span>`).join('')}</div>
+        <div class="order-footer">
+          <div class="order-total">${fp(o.total)}</div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-outline btn-sm" onclick="reorder(${o.id})">↺ Reorder</button>
+            ${o.status!=='delivered'&&o.status!=='cancelled'?`<button class="btn btn-primary btn-sm" onclick="navigate('track',{id:${o.id}})">Track →</button>`:''}
+          </div>
+        </div>
+      </div>`).join('')}
+    </div>
+    ${renderFooter()}`;
+}
+function reorder(id){
+  const o=orders.find(x=>x.id===id);if(!o)return;
+  o.items.forEach(i=>addToCart({menuItemId:i.menuItemId,name:i.name,price:i.price,quantity:i.quantity,imageUrl:i.imageUrl||'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200'}));
+}
+
+// ===== TRACK PAGE =====
+const trackSteps=[
+  {key:'confirmed',icon:'✅',label:'Order Confirmed',desc:'We have received your order'},
+  {key:'preparing',icon:'👨‍🍳',label:'Preparing',desc:'Our chefs are cooking your food'},
+  {key:'picked_up',icon:'🛵',label:'Out for Delivery',desc:'Your order is on the way'},
+  {key:'delivered',icon:'🏠',label:'Delivered',desc:'Enjoy your meal!'},
+];
+const statusOrder=['confirmed','preparing','picked_up','delivered'];
+function renderTrack(params={}){
+  const o=orders.find(x=>x.id===params.id);
+  if(!o){$('#app').innerHTML=`<div style="text-align:center;padding:80px 20px"><p style="font-size:3rem">📦</p><h2 class="fw-black">Order not found</h2><button class="btn btn-primary mt-4" onclick="navigate('orders')">My Orders</button></div>`;return;}
+  const stepIdx=statusOrder.indexOf(o.status);
+  $('#app').innerHTML=`
+    <div class="page-header"><div class="container"><h1>Track Order</h1><p>Order #${String(o.id).slice(-6)}</p></div></div>
+    <div class="container" style="padding:32px 20px;max-width:700px">
+      <div class="track-banner">
+        <div style="display:flex;justify-content:space-between">
+          <div><div style="font-size:.85rem;opacity:.8">Current Status</div><div class="track-status-val">${statusLabel(o.status)}</div></div>
+          <div style="text-align:right"><div style="font-size:.85rem;opacity:.8">Estimated</div><div style="font-weight:600">30-45 min</div></div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <h3 style="font-weight:700;margin-bottom:20px">Order Progress</h3>
+        <div class="stepper">
+          ${trackSteps.map((step,i)=>`<div class="step ${i<=stepIdx?'done':''}">
+            <div class="step-line"></div>
+            <div class="step-icon">${step.icon}</div>
+            <div class="step-content"><div class="step-label" style="${i<=stepIdx?'color:var(--primary)':''}">${step.label}</div><div class="step-desc">${step.desc}</div></div>
+          </div>`).join('')}
+        </div>
+        ${o.status!=='delivered'?`<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">${statusOrder.slice(statusOrder.indexOf(o.status)+1).map(s=>`<button class="btn btn-outline btn-sm" onclick="advanceOrder(${o.id},'${s}')">Mark as ${statusLabel(s)}</button>`).join('')}</div>`:''}
+      </div>
+      <div class="card">
+        <h3 style="font-weight:700;margin-bottom:12px">Order Details</h3>
+        ${o.items.map(i=>`<div class="price-row"><span class="text-muted">${i.name} ×${i.quantity}</span><span>${fp(i.price*i.quantity)}</span></div>`).join('')}
+        <div class="divider"></div>
+        <div class="price-row"><span class="text-muted">Subtotal</span><span>${fp(o.subtotal)}</span></div>
+        <div class="price-row"><span class="text-muted">Delivery</span><span>₹40</span></div>
+        <div class="price-row"><span class="text-muted">Tax</span><span>${fp(o.tax)}</span></div>
+        ${o.discount>0?`<div class="price-row" style="color:#22c55e"><span>Discount</span><span>-${fp(o.discount)}</span></div>`:''}
+        <div class="divider"></div>
+        <div class="price-row" style="font-weight:900;font-size:1rem"><span>Total</span><span class="text-primary">${fp(o.total)}</span></div>
+        <div class="divider"></div>
+        <div class="text-muted sm">📍 ${o.deliveryAddress}</div>
+        <div class="text-muted sm">💳 ${o.paymentMethod==='cod'?'Cash on Delivery':'Online Payment'}</div>
+      </div>
+    </div>
+    ${renderFooter()}`;
+}
+function advanceOrder(id,status){
+  const o=orders.find(x=>x.id===id);if(!o)return;
+  o.status=status;saveOrders();renderTrack({id});showToast(`Status: ${statusLabel(status)}`);
+}
+
+// ===== ACCOUNT PAGE =====
+function renderAccount(){
+  if(!userId){
+    $('#app').innerHTML=`
+      <div class="container" style="padding:40px 20px">
+        <div class="auth-card card">
+          <div style="text-align:center;margin-bottom:24px">
+            <div style="font-size:2.5rem;margin-bottom:8px">👤</div>
+            <h2 style="font-weight:900;font-size:1.4rem">Sign In</h2>
+            <p class="text-muted sm">Enter your mobile number to continue</p>
+          </div>
+          <div class="form-group"><label class="form-label">Mobile Number *</label><input type="tel" class="form-input" id="phoneInput" placeholder="e.g. 9876543210" /></div>
+          <div class="form-group"><label class="form-label">Name (optional)</label><input type="text" class="form-input" id="nameInput" placeholder="Your name" /></div>
+          <div class="form-group"><label class="form-label">Email (optional)</label><input type="email" class="form-input" id="emailInput" placeholder="your@email.com" /></div>
+          <button class="btn btn-primary btn-block" onclick="loginUser()">Continue →</button>
+          <p class="text-muted sm" style="text-align:center;margin-top:12px">By continuing, you agree to our Terms of Service</p>
+        </div>
+      </div>
+      ${renderFooter()}`;return;
+  }
+  const ref=userProfile?.referralCode||'SB'+userId.slice(-6).toUpperCase();
+  $('#app').innerHTML=`
+    <div class="page-header"><div class="container"><h1>My Account</h1></div></div>
+    <div class="container" style="padding:32px 20px;max-width:700px">
+      <div class="profile-header">
+        <div class="avatar">👤</div>
+        <div>
+          <div style="font-weight:800;font-size:1.1rem">${userProfile?.name||'SpiceBox Customer'}</div>
+          <div class="text-muted sm">${userProfile?.phone||userId}</div>
+          ${userProfile?.email?`<div class="text-muted sm">${userProfile.email}</div>`:''}
+        </div>
+      </div>
+      <div class="points-banner">
+        <div><div style="font-size:.85rem;opacity:.8">Loyalty Points</div><div class="points-val">${orders.reduce((s,o)=>s+Math.floor(o.total/10),0)}</div><div style="font-size:.85rem;opacity:.8">Earn 1 point per ₹10 spent</div></div>
+        <div style="font-size:3rem;opacity:.2">⭐</div>
+      </div>
+      <div class="card mb-2">
+        <h3 style="font-weight:700;margin-bottom:10px">🎁 Refer a Friend</h3>
+        <p class="text-muted sm mb-2">Share your code & earn 50 points per referral</p>
+        <div style="display:flex;gap:8px"><input class="referral-code" type="text" readonly value="${ref}" /><button class="btn btn-primary" onclick="navigator.clipboard.writeText('${ref}').then(()=>showToast('Copied! 🎉'))">Copy</button></div>
+      </div>
+      <div class="card mb-2">
+        <h3 style="font-weight:700;margin-bottom:12px">📦 Order History</h3>
+        <p class="text-muted sm">${orders.length} order${orders.length!==1?'s':''} placed</p>
+        <button class="btn btn-outline btn-sm mt-2" onclick="navigate('orders')">View All Orders</button>
+      </div>
+      <button class="btn btn-outline btn-block" style="border-color:#ef4444;color:#ef4444;margin-top:8px" onclick="logoutUser()">Sign Out</button>
+    </div>
+    ${renderFooter()}`;
+}
+function loginUser(){
+  const phone=($('#phoneInput')?.value||'').trim();
+  if(!phone){showToast('Enter your mobile number');return;}
+  userId=phone;
+  userProfile={phone,name:($('#nameInput')?.value||'').trim()||undefined,email:($('#emailInput')?.value||'').trim()||undefined,referralCode:'SB'+phone.slice(-6)};
+  localStorage.setItem('spicebox_user',userId);
+  localStorage.setItem('spicebox_profile',JSON.stringify(userProfile));
+  showToast('Signed in! 🎉');navigate('account');
+}
+function logoutUser(){userId=null;userProfile=null;localStorage.removeItem('spicebox_user');localStorage.removeItem('spicebox_profile');navigate('account');}
+
+// ===== ADMIN =====
+function renderAdmin(){
+  const totalRev=orders.reduce((s,o)=>s+o.total,0);
+  const today=new Date().toDateString();
+  const todayOrders=orders.filter(o=>new Date(o.createdAt).toDateString()===today).length;
+  const revenueByDay=[];
+  for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const label=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];const ds=d.toDateString();const rev=orders.filter(o=>new Date(o.createdAt).toDateString()===ds).reduce((s,o)=>s+o.total,0);revenueByDay.push({label,revenue:rev});}
+  const maxRev=Math.max(...revenueByDay.map(d=>d.revenue),1);
+  $('#app').innerHTML=`
+    <div class="admin-layout">
+      ${adminSidebar('dashboard')}
+      <div class="admin-main">
+        <div class="admin-header"><h1 style="font-size:1.3rem;font-weight:900">Dashboard</h1><button class="btn btn-ghost btn-sm" onclick="navigate('home')">← Back to site</button></div>
+        <div class="stat-cards">
+          ${[{l:'Total Orders',v:orders.length,i:'🛍️',bg:'#dbeafe',c:'#1d4ed8'},{l:"Today's Orders",v:todayOrders,i:'⚡',bg:'#fef3c7',c:'#d97706'},{l:'Total Revenue',v:'₹'+totalRev.toFixed(0),i:'📈',bg:'#dcfce7',c:'#15803d'},{l:'Customers',v:userId?1:0,i:'👥',bg:'#ede9fe',c:'#7c3aed'}]
+          .map(c=>`<div class="stat-card"><div class="stat-icon" style="background:${c.bg};color:${c.c}">${c.i}</div><div class="stat-val">${c.v}</div><div class="stat-label">${c.l}</div></div>`).join('')}
+        </div>
+        <div class="chart-card">
+          <div class="chart-header"><div class="chart-title">Revenue — Last 7 Days</div></div>
+          <div class="chart-wrap">
+            ${revenueByDay.map(d=>`<div class="bar-col"><div class="bar" style="height:${Math.max(4,(d.revenue/maxRev)*160)}px" data-val="₹${d.revenue.toFixed(0)}"></div><div class="bar-label">${d.label}</div></div>`).join('')}
+          </div>
+        </div>
+        <div class="orders-table">
+          <div class="table-header">Live Orders</div>
+          <table class="data-table">
+            <thead><tr><th>Order</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
+            <tbody>
+              ${!orders.length?'<tr><td colspan="4" class="text-muted" style="text-align:center;padding:24px">No orders yet</td></tr>'
+              :[...orders].reverse().slice(0,15).map(o=>`<tr>
+                <td>#${String(o.id).slice(-6)}</td>
+                <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)">${o.items.map(i=>`${i.name} ×${i.quantity}`).join(', ')}</td>
+                <td style="font-weight:700;color:var(--primary)">${fp(o.total)}</td>
+                <td><select class="status-select" onchange="updateOrderStatus(${o.id},this.value)">${['confirmed','preparing','picked_up','delivered','cancelled'].map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${statusLabel(s)}</option>`).join('')}</select></td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
+}
+function updateOrderStatus(id,status){const o=orders.find(x=>x.id===id);if(!o)return;o.status=status;saveOrders();showToast(`Updated to ${statusLabel(status)}`);}
+
+function renderAdminMenu(){
+  $('#app').innerHTML=`
+    <div class="admin-layout">
+      ${adminSidebar('adminmenu')}
+      <div class="admin-main">
+        <div class="admin-header"><h1 style="font-size:1.3rem;font-weight:900">Menu Items (${MENU_ITEMS.length})</h1><button class="btn btn-ghost btn-sm" onclick="navigate('home')">← Site</button></div>
+        <div class="orders-table">
+          <table class="data-table">
+            <thead><tr><th>Item</th><th>Category</th><th>Price</th><th>Status</th></tr></thead>
+            <tbody>
+              ${MENU_ITEMS.map(i=>`<tr>
+                <td><div style="display:flex;align-items:center;gap:10px"><img src="${i.imageUrl}" style="width:44px;height:44px;border-radius:8px;object-fit:cover" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100'" /><div><div style="font-weight:600;font-size:.88rem">${i.name}</div><div style="display:flex;align-items:center;gap:4px;margin-top:2px"><div style="width:8px;height:8px;border-radius:50%;background:${i.isVeg?'#22c55e':'#ef4444'}"></div><span style="font-size:.75rem;color:var(--muted)">${i.isVeg?'Veg':'Non-veg'}</span></div></div></div></td>
+                <td style="color:var(--muted)">${i.category}</td>
+                <td style="font-weight:700;color:var(--primary)">₹${i.price}</td>
+                <td><span style="font-size:.78rem;font-weight:600;padding:3px 10px;border-radius:20px;background:${i.isAvailable?'#dcfce7':'#fee2e2'};color:${i.isAvailable?'#15803d':'#dc2626'}">${i.isAvailable?'Available':'Unavailable'}</span></td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
+}
+
+function adminSidebar(active){
+  return `<div class="admin-sidebar">
+    <div class="admin-logo"><div class="logo-icon" style="width:28px;height:28px;font-size:.85rem">🍽️</div>Spice<span class="text-primary">Box</span></div>
+    <div class="sidebar-section-label">Admin</div>
+    <button class="sidebar-link ${active==='dashboard'?'active':''}" onclick="navigate('admin')">📊 Dashboard</button>
+    <button class="sidebar-link ${active==='adminmenu'?'active':''}" onclick="navigate('adminmenu')">📦 Menu Items</button>
+  </div>`;
+}
+
+// ===== FOOTER =====
+function renderFooter(){
+  return `<footer class="footer"><div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo"><div class="logo-icon" style="width:28px;height:28px;font-size:.85rem">🍽️</div>Spice<span class="text-primary">Box</span></div>
+        <p class="footer-desc">Cloud kitchen delivering bold flavors to your door in 30 minutes.</p>
+        <div class="social-links"><div class="social-btn">📘</div><div class="social-btn">📸</div><div class="social-btn">🐦</div></div>
+      </div>
+      <div class="footer-col"><h4>Quick Links</h4><div class="footer-links"><a onclick="navigate('home')">Home</a><a onclick="navigate('menu')">Menu</a><a onclick="navigate('orders')">My Orders</a><a onclick="navigate('account')">Account</a></div></div>
+      <div class="footer-col"><h4>Legal</h4><div class="footer-links"><a>Privacy Policy</a><a>Terms of Service</a><a>Refund Policy</a><span style="font-size:.78rem;color:var(--muted)">FSSAI: 10012345678901</span></div></div>
+      <div class="footer-col"><h4>Contact Us</h4><div class="footer-contact"><div class="contact-item"><span class="contact-icon">📍</span><span>12, Cloud Kitchen Hub, Andheri East, Mumbai - 400069</span></div><div class="contact-item"><span class="contact-icon">📞</span><span>+91 98765 43210</span></div><div class="contact-item"><span class="contact-icon">✉️</span><span>hello@spicebox.in</span></div></div></div>
+    </div>
+    <div class="footer-bottom"><p>© 2026 SpiceBox Cloud Kitchen. All rights reserved.</p><p>Crafted with love in Mumbai 🧡</p></div>
+  </div></footer>`;
+}
+
+// ===== INIT =====
+updateCartUI();
+navigate('home');
+</script>
+</body>
+</html>
